@@ -1,0 +1,13 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (testS.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  Performing Custom Build Tools
+  
+  Pro*C/C++: Release 12.1.0.2.0 - Production on Tue Dec 10 05:05:30 2019
+  
+  Copyright (c) 1982, 2014, Oracle and/or its affiliates.  All rights reserved.
+  
+  System default option values taken from: c:\proc_sdk\precomp\admin\pcscfg.cfg
+  
+  MoveMove.c
+  LINK : C:\MoveMove\Debug\MoveMove.exe을(를) 찾을 수 없거나 마지막 증분 링크에 의해 빌드되지 않았습니다. 전체 링크를 수행하고 있습니다.
+  MoveMove.vcxproj -> C:\MoveMove\Debug\MoveMove.exe
+  MoveMove.vcxproj -> C:\MoveMove\Debug\MoveMove.pdb (Full PDB)

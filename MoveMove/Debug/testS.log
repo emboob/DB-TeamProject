@@ -1,0 +1,10 @@
+﻿  Performing Custom Build Tools
+  
+  Pro*C/C++: Release 12.1.0.2.0 - Production on Tue Dec 10 04:59:56 2019
+  
+  Copyright (c) 1982, 2014, Oracle and/or its affiliates.  All rights reserved.
+  
+  System default option values taken from: c:\proc_sdk\precomp\admin\pcscfg.cfg
+  
+  PCC-F-02101, Unable to open input file: "C:\testS\testS\testS.pc"
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppCommon.targets(171,5): error MSB6006: "cmd.exe"이(가) 종료되었습니다(코드: 1).

@@ -1,0 +1,789 @@
+// win32 Visual C ÄÄÆÄÀÏ½Ã Ãß°¡
+// ÇÁ·Î±×·¥ °¡Àå Ã¹ ÁÙ¿¡ Ãß°¡ÇÒ °Í
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <conio.h>
+#include <Windows.h>
+#include <memory.h>
+
+/* for oracle */
+#include <sqlda.h>
+#include <sqlca.h>
+#include <sqlcpr.h>
+
+void DB_connect();
+void firstPage();
+void menu();
+void sql_error(char *msg) ;
+void youtubeVideo();
+EXEC SQL BEGIN DECLARE SECTION;
+	VARCHAR uid[80];
+	VARCHAR pwd[20];
+EXEC SQL END DECLARE SECTION;
+
+// win32 Visual C ÄÄÆÄÀÏ½Ã Ãß°¡
+#define getch() _getch()
+
+void main()
+{
+	int choice;
+
+	DB_connect();
+
+	do
+	{
+		system("cls");
+		firstPage();
+		menu();
+		scanf("%d", &choice);
+		printf("\n");
+		
+		// 1~4°¡ ¾Æ´Ñ ¼ýÀÚ¸¦ »ç¿ëÀÚ°¡ ÀÔ·ÂÇßÀ» ½Ã, ÇÁ·Î±×·¥ÀÌ Á¾·áµÇ°Ô ÇÔ.
+		if (choice != 1 && choice != 2 && choice != 3)
+		{
+			choice = 4;
+		}
+
+		// ¼ýÀÚ°¡ ¾Æ´Ñ ¹®ÀÚ°¡ ÀÔ·ÂµÇ¾úÀ» °æ¿ì ÇÁ·Î±×·¥ÀÌ Á¾·áµÇ°Ô ÇÔ.
+		while(getchar()!='\n')
+		{
+			choice = 4;
+		};
+
+		EXEC SQL BEGIN DECLARE SECTION;
+			char u_uid[20]= {""};
+			char u_id_check[20] = {""};
+			char u_id_payment_check[20] = {""};
+			char u_pw_check[20] = {""};
+			char u_check[20]={""};
+			char u_upd[20];
+			char u_uage[10];
+		EXEC SQL END DECLARE SECTION;
+
+		// »ç¿ëÀÚÀÇ ÀÔ·Â¿¡ µû¶ó ½ÇÇàµÇµµ·Ï ÇÔ.
+		switch(choice)
+		{
+		case 1:
+			int login_choice;
+			printf("					    ¾ÆÀÌµð¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+			scanf("%s", u_uid);
+			printf("					    ºñ¹Ð¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+			scanf("%s", u_upd);
+			printf("\n");
+
+			EXEC SQL SELECT USER_ID, USER_PASSWD
+					 into :u_id_check, :u_pw_check
+					from users
+					where USER_ID = :u_uid and USER_PASSWD = :u_upd;
+
+			if (strcmp(u_id_check, u_uid) == 1 && strcmp(u_pw_check, u_upd) == 1)
+			{
+				printf("·Î±×ÀÎ¿¡ ¼º°øÇÏ¿´½À´Ï´Ù!\n\n");
+				printf("%s´Ô È¯¿µÇÕ´Ï´Ù.\n\n", u_uid);
+			}							
+			else
+			{
+				printf("¾ÆÀÌµð ¶Ç´Â ºñ¹Ð¹øÈ£°¡ Àß¸øµÇ¾ú½À´Ï´Ù. ´Ù½Ã µé¾î¿Í ÁÖ½Ê½Ã¿À.\n");
+				getch();
+				continue;
+			}
+
+			do {
+				printf("\n¸Þ´º¸¦ ¼±ÅÃÇØ ÁÖ¼¼¿ä.\n");
+				printf("\n1. ¿µÈ­ ÃßÃµ 2. À¯Æ©ºê ÃßÃµ 3. °áÁ¦Á¤º¸ È®ÀÎ 4. °áÁ¦ÇÏ±â 5. ·Î±×¾Æ¿ô\n");
+				printf("\n¼± ÅÃ : ");
+				
+				scanf("%d", &login_choice);
+
+				// 1~4°¡ ¾Æ´Ñ ¼ýÀÚ¸¦ »ç¿ëÀÚ°¡ ÀÔ·ÂÇßÀ» ½Ã, ÇÁ·Î±×·¥ÀÌ Á¾·áµÇ°Ô ÇÔ.
+				if (login_choice != 1 && login_choice != 2 && login_choice != 3 && login_choice != 4)
+				{
+					login_choice = 5;
+				}
+
+				// ¼ýÀÚ°¡ ¾Æ´Ñ ¹®ÀÚ°¡ ÀÔ·ÂµÇ¾úÀ» °æ¿ì ÇÁ·Î±×·¥ÀÌ Á¾·áµÇ°Ô ÇÔ.
+				while(getchar()!='\n')
+				{
+					login_choice = 5;
+				};
+
+				switch(login_choice)
+				{
+				case 1: // ¿µÈ­ ÃßÃµ
+					EXEC SQL BEGIN DECLARE SECTION;								
+						char u_id_payment_movie[20];
+						char u_favorite[20];
+						char u_transportation[20];
+						char loc_end[20];
+						char m_title[20];
+						char m_genre[10];
+						char m_rating[20];
+						char m_actor[50];
+						int m_score;
+						int m_age;
+						int m_runningtime;
+						int start_lat;
+						int start_long;
+						int end_lat;
+						int end_long;
+						int distance;
+
+					EXEC SQL END DECLARE SECTION;
+
+					EXEC SQL WHENEVER NOT FOUND goto movie_start;
+
+					EXEC SQL SELECT USER_ID
+							into :u_id_payment_movie
+							from payment
+							where USER_ID = :u_uid;
+
+					movie_start:
+
+					if (strlen(u_id_payment_movie) == 19){ // °áÁ¦°¡ µÇ¾îÀÖ±â¿¡ ´ÙÀ½À¸·Î ÁøÇà		
+											
+
+						printf("»çÀü Á¤º¸ ¼öÁýÀÔ´Ï´Ù.\n\n");
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("Àå¸£ Á¾·ù: ");
+						EXEC SQL DECLARE m_genre_cursor CURSOR FOR
+							SELECT DISTINCT movie_genre 
+							from movie;
+
+						EXEC SQL OPEN m_genre_cursor;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH m_genre_cursor INTO
+							:m_genre;
+						
+							printf("%s ", m_genre);
+						}
+						EXEC SQL CLOSE m_genre_cursor;
+						printf("\n¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("\n\n¼±È£ Àå¸£:");
+						scanf("%s", u_favorite);
+						printf("\n");
+						//---------------------------------------------
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("ÀÌµ¿¼ö´Ü Á¾·ù: ");
+						EXEC SQL DECLARE m_transportation_cursor CURSOR FOR
+							SELECT DISTINCT user_transportation
+							from users;
+
+						EXEC SQL OPEN m_transportation_cursor;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH m_transportation_cursor INTO
+							:m_genre;
+						
+							printf("%s ", m_genre);
+						}
+						EXEC SQL CLOSE m_transportation_cursor;
+						printf("\n¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("\n\nÀÌµ¿¼ö´Ü:");
+						scanf("%s", u_transportation);
+						printf("\n");
+						//---------------------------------------------
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("ÀÌµ¿°¡´ÉÇÑ µµÂøÁö: ");
+						EXEC SQL DECLARE m_location_cursor CURSOR FOR
+							SELECT DISTINCT location_name
+							from location;
+
+						EXEC SQL OPEN m_location_cursor;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH m_location_cursor INTO
+							:m_genre;
+						
+							printf("%s ", m_genre);
+						}
+						EXEC SQL CLOSE m_location_cursor;
+						printf("\n¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("\n\nµµÂøÁö:");
+						scanf("%s", loc_end);						
+						printf("\n");
+
+						EXEC SQL UPDATE USERS
+							SET
+								USER_TRANSPORTATION = :u_transportation,
+								USER_FAVORITE = :u_favorite
+							WHERE
+								USER_ID = :u_uid;
+						EXEC SQL COMMIT WORK;
+					
+
+						EXEC SQL SELECT LOCATION_LATITUDE, LOCATION_LONGITUDE
+									into :start_lat, :start_long
+									from location 
+									where LOCATION_NAME = 'ºÎ»ê';
+						
+						EXEC SQL SELECT LOCATION_LATITUDE, LOCATION_LONGITUDE
+									into :end_lat, :end_long
+									from location 
+									where LOCATION_NAME = :loc_end;
+
+						// ¾Ë°í¸®Áò
+						start_lat -= end_lat;
+						start_long -= end_long;
+
+						if(start_lat <0) start_lat = -start_lat;
+						if(start_long <0) start_long = -start_long;
+
+						distance = start_lat*111 + start_long*89;
+
+						if(u_transportation == "¹ö½º" || strcmp(u_transportation, "¹ö½º") == 0) distance = distance*2;
+						else if(u_transportation == "±âÂ÷" || strcmp(u_transportation, "±âÂ÷") == 0) distance = distance/2;
+						else if(u_transportation == "ºñÇà±â" || strcmp(u_transportation, "ºñÇà±â") == 0) distance = distance/4;
+
+						//¿µ»ó ÃßÃµ show
+						EXEC SQL DECLARE movie_show CURSOR FOR
+							SELECT MOVIE_TITLE, MOVIE_GENRE, MOVIE_RATING, 
+							MOVIE_SCORE, MOVIE_AGE, MOVIE_ACTOR, MOVIE_RUNNINGTIME
+							from movie							
+							where MOVIE_GENRE = :u_favorite and MOVIE_RUNNINGTIME between :distance-50 and :distance+50;
+
+						EXEC SQL OPEN movie_show;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)					
+						{
+							EXEC SQL FETCH movie_show INTO
+							:m_title, :m_genre, :m_rating, 
+							:m_score, :m_age, :m_actor, :m_runningtime;
+
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("Á¦¸ñ = %s\n", m_title);							
+							printf("Àå¸£ = %s\n", m_genre);
+							printf("½ÃÃ»µî±Þ = %s\n", m_rating);
+							printf("º°Á¡ = %d\n", m_score);
+							printf("Ãâ½Ã³âµµ = %d\n", m_age);
+							printf("Ãâ¿¬¹è¿ì = %s\n", m_actor);
+							printf("»ó¿µ½Ã°£ = %d\n", m_runningtime);
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("\n");
+						}
+						EXEC SQL CLOSE movie_show;
+
+
+					}else{ // ±¸µ¶ÁßÀÌÁö ¾ÊÀ¸´Ï °áÁ¦ ¿ä±¸
+						printf("±¸µ¶ÀÌ µÇ¾îÀÖÁö ¾Ê½À´Ï´Ù. µ¹¾Æ°£ ÈÄ °áÁ¦ÇÏ½Ã±æ ¹Ù¶ø´Ï´Ù. \n");
+					}
+
+					break;
+				case 2: // À¯Æ©ºê ¿µ»ó ÃßÃµ
+					youtubeVideo(); 
+					break;
+				case 3: // °áÁ¦Á¤º¸ È®ÀÎ
+
+					EXEC SQL WHENEVER NOT FOUND goto inan;
+
+					EXEC SQL SELECT USER_ID
+							into :u_id_payment_check
+							from payment
+							where USER_ID = :u_uid;
+					
+					inan:
+					if (strlen(u_id_payment_check) > 0){
+						printf("\n°áÁ¦Á¤º¸¸¦ Ãâ·ÂÇÕ´Ï´Ù.\n\n");
+						
+							EXEC SQL BEGIN DECLARE SECTION;								
+								char p_date_start[20];
+								char p_date_end[20];
+								int p_period;
+								int b_price;
+								int p_end;
+							EXEC SQL END DECLARE SECTION;
+
+						EXEC SQL DECLARE payment_check CURSOR FOR
+							select user_id, p.PAYMENT_DATE, p.PAYMENT_DATE + p.PAYMENT_PERIOD, p.PAYMENT_PERIOD, b.PAYMENT_PRICE, p.payment_date+p.PAYMENT_PERIOD-sysdate
+							from payment p, BILLINGHISTORY b 
+							where user_id = :u_uid and p.PAYMENT_DATE = b.PAYMENT_DATE;
+
+						EXEC SQL OPEN payment_check;
+
+						//EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						EXEC SQL FETCH payment_check INTO
+						:u_id_payment_check, :p_date_start, :p_date_end, :p_period, :b_price, :p_end;
+						
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("°áÁ¦ »ç¿ëÀÚ = %s\n", u_id_payment_check);
+						printf("°áÁ¦½ÃÀÛÀÏ = %s  \n", p_date_start);
+						printf("°áÁ¦¸¸·áÀÏ = %s  \n", p_date_end);
+						printf("³²Àº±â°£ = %d  \n", p_end);
+						printf("°áÁ¦ ¾ÆÀÌÅÛ = %dÀÏ\n", p_period);					
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("\n");
+
+						EXEC SQL CLOSE payment_check;
+
+
+					}else
+						printf("\nÇöÀç °áÁ¦ ³»¿ªÀÌ ¾ø½À´Ï´Ù. °áÁ¦ ÈÄ È®ÀÎÇÏ½Ã±æ ¹Ù¶ø´Ï´Ù.\n\n");
+					
+
+					
+					break;
+
+				case 4: // °áÁ¦ÇÏ±â
+						int user_pay;
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("°áÁ¦ ¾ÆÀÌÅÛ ¸ñ·Ï\n");						
+						printf("10ÀÏ = 10000¿ø \n");
+						printf("25ÀÏ = 25000¿ø \n");
+						printf("50ÀÏ = 50000¿ø \n");
+						printf("60ÀÏ = 60000¿ø \n");
+						printf("90ÀÏ = 90000¿ø \n");
+						printf("100ÀÏ = 100000¿ø \n");
+						printf("200ÀÏ = 200000¿ø \n");
+						printf("365ÀÏ = 365000¿ø \n");
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+
+						printf("\n\n\n±â°£À» ¼±ÅÃÇØÁÖ¼¼¿ä ¿¹) 60\n");
+						printf("Ãë¼Ò´Â 0À» ÀÔ·ÂÇØÁÖ¼¼¿ä!! \n");
+						printf("\n¼± ÅÃ : ");
+						scanf("%d", &user_pay);
+
+						if(user_pay == 0)
+							continue;
+						else{
+							EXEC SQL BEGIN DECLARE SECTION;								
+								char p_date[20]={""};	
+								char u_id_payment_exist[20];
+								int p_num = 0;
+								int p_period = user_pay;
+								int b_price = user_pay*1000;								
+							EXEC SQL END DECLARE SECTION;
+
+
+							
+							EXEC SQL SELECT sysdate 
+									into :p_date 
+									from dual;
+							
+							EXEC SQL select payment_num 
+									into :p_num
+									from payment 
+									order by payment_num desc;				
+
+							while(getchar()!='\n'){};
+
+							EXEC SQL WHENEVER NOT FOUND goto ig_start;
+
+
+							EXEC SQL SELECT USER_ID
+									into :u_id_payment_exist
+									from payment
+									where USER_ID = :u_uid;
+
+							ig_start:
+
+							if (strlen(u_id_payment_exist) < 46){ // ÀÌ¹Ì °áÁ¦°¡ ÀÖ±â ¶§¹®¿¡ update					
+								printf("ÀÌ¹Ì ±¸µ¶ÁßÀÔ´Ï´Ù!!! ±¸µ¶ÀÌ ³¡³­ ÈÄ °áÁ¦ÇÏ½Ã±æ ¹Ù¶ø´Ï´Ù. \n");
+							}else{ // Áßº¹°ªÀÌ ¾ø±â ¶§¹®¿¡ insert 			
+								EXEC SQL INSERT INTO BILLINGHISTORY(
+										payment_date,
+										payment_period,
+										payment_price
+								)VALUES(
+										:p_date,
+										:p_period,
+										:b_price
+								);
+								EXEC SQL COMMIT WORK;
+
+								EXEC SQL INSERT INTO PAYMENT(
+										payment_num,
+										user_id,
+										payment_date,
+										payment_period
+								)VALUES(
+										:(p_num)+1,
+										:u_uid,
+										:p_date,
+										:p_period
+								);
+							EXEC SQL COMMIT WORK;	
+																
+								printf("°áÁ¦ÇØÁÖ¼Å¼­ °¨»çÇÕ´Ï´Ù!! ¿À´ÃºÎÅÍ ¿µÈ­°¨»ó Á¤»ó ÀÌ¿ë °¡´ÉÇÕ´Ï´Ù.\n");
+							}
+								
+						}
+						
+					break;
+
+				case 5:
+					printf("\n·Î±×¾Æ¿ô ÇÕ´Ï´Ù.\n¾È³çÈ÷ °¡¼¼¿ä\n");
+					break;
+				}
+
+			} while(login_choice != 5);
+
+			getch();
+			break;
+
+		case 2:
+			printf("					    ¾ÆÀÌµð¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+			scanf("%s", u_uid);
+			printf("					    ºñ¹Ð¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+			scanf("%s", u_upd);
+			printf("					    ³ªÀÌ¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+			scanf("%s", u_uage);
+			printf("\n");
+			
+			EXEC SQL WHENEVER NOT FOUND goto id_start;
+
+			EXEC SQL SELECT USER_ID
+					 into :u_check
+			from users
+			where USER_ID = :u_uid;
+
+			// 0ÀÌ ¶È°°¾î 1ÀÌ u_check°¡ Å©°í, -1 u_uid°¡ Å©´Ù.
+			// È®ÀÎ½Ã¿¡ °°Àº °ªÀÌ ÂïÈ÷Áö¸¸ ±×·² °æ¿ì u_check°¡ ´õ Å©´Ù´Â°ÍÀ» È®ÀÎÇÏ¿©¼­ Àû¿ëÇÏ¿´´Ù.
+			if (strcmp(u_check, u_uid) == 1)
+			{
+				printf("					    Áßº¹µÇ´Â ¾ÆÀÌµð°¡ ÀÌ¹Ì Á¸ÀçÇÕ´Ï´Ù!\n\n");
+				printf("					    ´Ù½Ã È¸¿ø°¡ÀÔÀ» ½ÃµµÇØ ÁÖ¼¼¿ä!\n\n");
+			}
+			else
+			{
+			id_start:
+				EXEC SQL INSERT INTO USERS(USER_ID, USER_PASSWD, USER_AGE)
+	 					 VALUES (:u_uid, :u_upd, :u_uage);
+
+				EXEC SQL COMMIT WORK;
+
+				printf("				È¸¿ø °¡ÀÔ¿¡ ¼º°øÇÏ¿´½À´Ï´Ù!\n\n");
+			}
+
+			getch();
+
+			break;
+
+		case 3:
+			youtubeVideo();
+			break;
+		}
+		
+	} while ((choice) != 4);
+
+	//Get_tuple();
+	printf("					      ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+	printf("					°¨»çÇÕ´Ï´Ù. ´ÙÀ½¿¡ ¶Ç ÀÌ¿ëÇØ ÁÖ¼¼¿ä!\n");
+	getch();
+}
+
+void DB_connect()
+{
+   strcpy((char *)uid.arr,"zstA3@//sedb.deu.ac.kr:1521/orcl");
+   uid.len = (short) strlen((char *)uid.arr);
+   strcpy((char *)pwd.arr,"jksd1633");
+   pwd.len = (short) strlen((char *)pwd.arr);
+
+   EXEC SQL CONNECT :uid IDENTIFIED BY :pwd;
+
+	// connectionÀÌ ½ÇÆÐÇßÀ»°æ¿ìÀÇ Ã³¸®ºÎºÐ
+
+	if (sqlca.sqlcode != 0 && sqlca.sqlcode != -1405){ 
+		printf("\7Cconnect error: %s", sqlca.sqlerrm.sqlerrmc);
+		getch();
+		exit(-1);
+	}
+
+    //printf("Oracle Connect SUCCESS by %s\n", uid.arr);
+}
+
+void firstPage()
+{
+	printf("\n");
+	printf(" ¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú\n");
+	printf(" ¡Ú                                                                                                                  ¡Ú\n");
+	printf(" ¡Ú                                                                                                                  ¡Ú\n");
+	printf(" ¡Ú                                                                                                                  ¡Ú\n");
+	printf(" ¡Ú   ¡á¡á            ¡á¡á                                                                                           ¡Ú\n");
+	printf(" ¡Ú   ¡á ¡á          ¡á ¡á                                                                                           ¡Ú\n");
+	printf(" ¡Ú   ¡á  ¡á        ¡á  ¡á                                                                                           ¡Ú\n");
+	printf(" ¡Ú   ¡á   ¡á      ¡á   ¡á                                                                                           ¡Ú\n");
+	printf(" ¡Ú   ¡á    ¡á    ¡á    ¡á    ¡á¡á¡á   ¡á          ¡á  ¡á¡á          ¡á¡á¡á¡á     ¡á¡á¡á   ¡á          ¡á  ¡á¡á      ¡Ú\n");
+	printf(" ¡Ú   ¡á     ¡á  ¡á     ¡á   ¡á    ¡á   ¡á        ¡á  ¡á  ¡á        ¡á  ¡á  ¡á   ¡á    ¡á   ¡á        ¡á  ¡á  ¡á     ¡Ú\n");
+	printf(" ¡Ú   ¡á      ¡á¡á      ¡á  ¡á      ¡á   ¡á      ¡á  ¡á    ¡á       ¡á  ¡á  ¡á  ¡á      ¡á   ¡á      ¡á  ¡á    ¡á    ¡Ú\n");
+	printf(" ¡Ú   ¡á       ¡á       ¡á ¡á        ¡á   ¡á    ¡á  ¡á¡á¡á¡á¡á      ¡á  ¡á  ¡á ¡á        ¡á   ¡á    ¡á  ¡á¡á¡á¡á¡á   ¡Ú\n");
+	printf(" ¡Ú   ¡á                ¡á  ¡á      ¡á     ¡á  ¡á   ¡á              ¡á  ¡á  ¡á  ¡á      ¡á     ¡á  ¡á   ¡á           ¡Ú\n");
+	printf(" ¡Ú   ¡á                ¡á   ¡á    ¡á       ¡á¡á     ¡á    ¡á       ¡á  ¡á  ¡á   ¡á    ¡á       ¡á¡á     ¡á    ¡á    ¡Ú\n");
+	printf(" ¡Ú   ¡á                ¡á    ¡á¡á¡á         ¡á       ¡á¡á¡á        ¡á  ¡á  ¡á    ¡á¡á¡á         ¡á       ¡á¡á¡á     ¡Ú\n");
+	printf(" ¡Ú                                                                                                                  ¡Ú\n");
+	printf(" ¡Ú                                                                                                                  ¡Ú\n");
+	printf(" ¡Ú                                                                                                                  ¡Ú\n");
+	printf(" ¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú¡Ú\n");
+	printf("\n");
+}
+
+void menu()
+{
+	char a[20] = "1. ·Î ±× ÀÎ";
+	char b[20] = "2. È¸ ¿ø °¡ ÀÔ";
+	char c[30] = "3. ¿µ»ó ÃßÃµ (ºñÈ¸¿ø)";
+	char d[10] = "4. Á¾ ·á";
+	char e[10] = "¼± ÅÃ : ";
+	
+	printf("%60s\n", a);
+	printf("\n");
+	printf("%63s\n", b);
+	printf("\n");
+	printf("%70s\n", c);
+	printf("\n");
+	printf("%57s\n", d);
+	printf("\n");
+	printf("%57s", e);
+}
+
+/* --------------------------------------------------------------------------
+void sql_error(msg)
+
+   errrpt prints the ORACLE error msg and number.
+-------------------------------------------------------------------------- */
+void sql_error(char *msg)
+{
+    char err_msg[128];
+    size_t buf_len, msg_len;
+
+    EXEC SQL WHENEVER SQLERROR CONTINUE;
+
+    printf("\n%s\n", msg);
+    buf_len = sizeof (err_msg);
+    sqlglm(err_msg, &buf_len, &msg_len);
+    printf("%.*s\n", msg_len, err_msg);
+    getch();
+    
+    EXEC SQL ROLLBACK WORK;
+    
+    //exit(-1);
+}
+
+void youtubeVideo(){
+	int numchoice;
+
+			EXEC SQL BEGIN DECLARE SECTION;
+				char y_title[100]={""};
+				char y_genre[10]={""};
+				char y_rating[20]={""};
+				char y_channel[10]={""};
+				char user_select_genre[20];
+				char user_select_channel[20];
+				int y_views;
+
+				short y_title_ind=0;
+				short y_genre_ind=0;
+				short y_rating_ind=0;
+				short y_channel_ind=0;
+				short y_views_ind=0;
+			EXEC SQL END DECLARE SECTION;
+
+			do{
+				printf("\nÀ¯Æ©ºê ¿µ»ó ÃßÃµ ¸Þ´ºÀÔ´Ï´Ù.\n");
+				printf("\n°Ë»öÀ» ¿øÇÏ´Â ±âÁØÀ» ¼±ÅÃÇÏ¼¼¿ä.\n");
+				printf("\n1. ÀÎ±âµ¿¿µ»ó(TOP 5) 2. Àå¸£ 3. À¯Æ©ºê Ã¤³Î 4. ÀüÃ¼ º¸±â 5. ÀÌÀüÀ¸·Î µ¹¾Æ°¡±â\n");
+				printf("\n¼± ÅÃ : ");
+				scanf("%d", &numchoice);
+
+				// 1~4°¡ ¾Æ´Ñ ¼ýÀÚ¸¦ »ç¿ëÀÚ°¡ ÀÔ·ÂÇßÀ» ½Ã, ÇÁ·Î±×·¥ÀÌ Á¾·áµÇ°Ô ÇÔ.
+				if (numchoice != 1 && numchoice != 2 && numchoice != 3 && numchoice != 4)
+				{
+					numchoice = 5;
+				}
+
+				// ¼ýÀÚ°¡ ¾Æ´Ñ ¹®ÀÚ°¡ ÀÔ·ÂµÇ¾úÀ» °æ¿ì ÇÁ·Î±×·¥ÀÌ Á¾·áµÇ°Ô ÇÔ.
+				while(getchar()!='\n')
+				{
+					numchoice = 5;
+				};
+
+				printf("\n");
+
+				switch(numchoice)
+				{
+//case 1				
+					case 1:
+						EXEC SQL DECLARE y_view_ranking CURSOR FOR
+							SELECT YOUTUBE_TITLE, YOUTUBE_VIEWS, YOUTUBE_GENRE, YOUTUBE_RATING, 
+							YOUTUBE_CHANNEL
+							from youtube
+							order by youtube_views desc;
+
+						EXEC SQL OPEN y_view_ranking;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						// Á¶È¸¼ö ¼øÀ¸·Î Á¤·ÄÇÏ´Â °ÍÀº ³Ê¹« ¸¹ÀÌ ³ª¿À¸é º¸±â ¾ÈÁÁÀ¸¹Ç·Î 5°³¸¸ »Ì¾Ò½À´Ï´Ù.
+						for(int i=0; i<5; i++)						
+						{
+							EXEC SQL FETCH y_view_ranking INTO
+							:y_title:y_title_ind, :y_views:y_views_ind, :y_genre:y_genre_ind, 
+							:y_rating:y_rating_ind, :y_channel:y_channel_ind;
+						
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("Á¦¸ñ = %s\n", y_title);
+							printf("Á¶È¸ ¼ö = %d È¸ \n", y_views);
+							printf("Àå¸£ = %s\n", y_genre);
+							printf("½ÃÃ»µî±Þ = %s\n", y_rating);
+							printf("Ã¤³Î ÀÌ¸§ = %s\n", y_channel);
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("\n");
+						}
+						EXEC SQL CLOSE y_view_ranking;
+					break;
+//case 2
+					case 2:
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("Àå¸£ÀÇ Á¾·ù = ");
+						EXEC SQL DECLARE y_genre_select CURSOR FOR
+							SELECT DISTINCT YOUTUBE_GENRE 
+							from youtube;
+
+						EXEC SQL OPEN y_genre_select;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH y_genre_select INTO
+							:y_genre:y_genre_ind;
+						
+							printf("%4s", y_genre);
+						}
+						EXEC SQL CLOSE y_genre_select;
+						printf("\n");
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("Àå¸£¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+						scanf("%s", user_select_genre);
+						printf("\n");
+
+						EXEC SQL DECLARE print_genre CURSOR FOR
+							SELECT YOUTUBE_TITLE, YOUTUBE_VIEWS, YOUTUBE_GENRE, YOUTUBE_RATING, 
+							YOUTUBE_CHANNEL
+							from youtube
+							where youtube_genre = :user_select_genre;
+
+						EXEC SQL OPEN print_genre;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH print_genre INTO
+							:y_title:y_title_ind, :y_views:y_views_ind, :y_genre:y_genre_ind, 
+							:y_rating:y_rating_ind, :y_channel:y_channel_ind;
+						
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("Á¦¸ñ = %s\n", y_title);
+							printf("Á¶È¸ ¼ö = %d È¸ \n", y_views);
+							printf("Àå¸£ = %s\n", y_genre);
+							printf("½ÃÃ»µî±Þ = %s\n", y_rating);
+							printf("Ã¤³Î ÀÌ¸§ = %s\n", y_channel);
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("\n");
+						}
+
+						EXEC SQL CLOSE print_genre;
+					break;
+//case 3
+					case 3:
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("µî·ÏµÈ Ã¤³ÎÀÇ Á¾·ù  = ");
+						EXEC SQL DECLARE y_channel_select CURSOR FOR
+							SELECT DISTINCT YOUTUBE_CHANNEL 
+							from youtube;
+
+						EXEC SQL OPEN y_channel_select;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH y_channel_select INTO
+							:y_channel:y_channel_ind;
+						
+							printf("%s  ", y_channel);
+						}
+						EXEC SQL CLOSE y_channel_select;
+						printf("\n");
+						printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+						printf("Ã¤³ÎÀ» ÀÔ·ÂÇÏ¼¼¿ä : ");
+						scanf("%s", user_select_channel);
+						printf("\n");
+
+						EXEC SQL DECLARE print_channel CURSOR FOR
+							SELECT YOUTUBE_TITLE, YOUTUBE_VIEWS, YOUTUBE_GENRE, YOUTUBE_RATING, 
+							YOUTUBE_CHANNEL
+							from youtube
+							where youtube_channel = :user_select_channel;
+
+						EXEC SQL OPEN print_channel;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH print_channel INTO
+							:y_title:y_title_ind, :y_views:y_views_ind, :y_genre:y_genre_ind, 
+							:y_rating:y_rating_ind, :y_channel:y_channel_ind;
+						
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("Á¦¸ñ = %s\n", y_title);
+							printf("Á¶È¸ ¼ö = %d È¸ \n", y_views);
+							printf("Àå¸£ = %s\n", y_genre);
+							printf("½ÃÃ»µî±Þ = %s\n", y_rating);
+							printf("Ã¤³Î ÀÌ¸§ = %s\n", y_channel);
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("\n");
+						}
+
+						EXEC SQL CLOSE print_channel;
+					break;
+					case 4:
+						EXEC SQL DECLARE print_all CURSOR FOR
+							SELECT YOUTUBE_TITLE, YOUTUBE_VIEWS, YOUTUBE_GENRE, YOUTUBE_RATING, 
+							YOUTUBE_CHANNEL
+							from youtube;
+
+						EXEC SQL OPEN print_all;
+
+						EXEC SQL WHENEVER NOT FOUND DO BREAK;
+
+						for(;;)
+						{
+							EXEC SQL FETCH print_all INTO
+							:y_title:y_title_ind, :y_views:y_views_ind, :y_genre:y_genre_ind, 
+							:y_rating:y_rating_ind, :y_channel:y_channel_ind;
+						
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("Á¦¸ñ = %s\n", y_title);
+							printf("Á¶È¸ ¼ö = %d È¸ \n", y_views);
+							printf("Àå¸£ = %s\n", y_genre);
+							printf("½ÃÃ»µî±Þ = %s\n", y_rating);
+							printf("Ã¤³Î ÀÌ¸§ = %s\n", y_channel);
+							printf("¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡\n");
+							printf("\n");
+						}
+
+						EXEC SQL CLOSE print_all;
+					break;
+				}
+				
+				printf("\n");
+			} while((numchoice) != 5);
+}
